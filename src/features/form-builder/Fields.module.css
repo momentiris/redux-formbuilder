@@ -1,0 +1,21 @@
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 200px;
+  padding: 10px;
+  border: 2px solid black;
+  border-radius: 10px;
+}
+
+.fieldRow {
+  display: flex;
+  max-width: 200px;
+  justify-content: space-between;
+}

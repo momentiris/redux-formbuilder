@@ -2,17 +2,28 @@ import { CaseReducer, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "../../app/store";
 import { match } from "ts-pattern";
 
-type TextField = { id: string; type: "text"; value: string | undefined };
-type CheckboxField = { id: string; type: "checkbox"; value: boolean };
-type SelectField = {
+export type TextField = {
+  id: string;
+  type: "text";
+  defaultValue: string | undefined;
+};
+export type CheckboxField = {
+  id: string;
+  type: "checkbox";
+  defaultValue: boolean;
+};
+
+export type SelectField = {
   id: string;
   type: "select";
   value: Option | undefined;
   options: Array<Option>;
+  defaultValue: Option | undefined;
 };
+
 type Option = { id: string; value: string };
 
-type Field = TextField | CheckboxField | SelectField;
+export type Field = TextField | CheckboxField | SelectField;
 
 type RequiredValidation = {
   type: "required";
@@ -43,7 +54,7 @@ const initialState: FormBuilderState = {
 
 const createTextField = (): FormField => ({
   type: "text",
-  value: "",
+  defaultValue: "",
   rules: [],
   result: { type: "negative" },
   id: Math.random().toString(),
@@ -51,7 +62,7 @@ const createTextField = (): FormField => ({
 
 const createCheckboxField = (): FormField => ({
   type: "checkbox",
-  value: false,
+  defaultValue: false,
   rules: [],
   result: { type: "negative" },
   id: Math.random().toString(),
@@ -61,6 +72,7 @@ const createSelectField = (): FormField => ({
   type: "select",
   options: [],
   value: undefined,
+  defaultValue: undefined,
   rules: [],
   result: { type: "negative" },
   id: Math.random().toString(),
