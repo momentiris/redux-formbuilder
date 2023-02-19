@@ -28,6 +28,7 @@ export const Fields = () => {
       {state.map((field) => (
         <Field
           onEdit={() => onEdit(field.id)}
+          id={field.id}
           onRemove={() => dispatch(actions.removeField(field.id))}
           name={field.type}
           key={field.id}
@@ -45,12 +46,14 @@ type FieldProps = {
   onRemove: () => void;
   mode: "collapsed" | "expanded";
   type: FieldType["type"];
+  id: string;
 };
 
-const Field = ({ onEdit, name, onRemove, mode, type }: FieldProps) => {
+const Field = ({ onEdit, name, onRemove, mode, type, id }: FieldProps) => {
   return match(type)
     .with("text", () => (
       <EditableTextField
+        id={id}
         type={type}
         mode={mode}
         onRemove={onRemove}
@@ -60,6 +63,7 @@ const Field = ({ onEdit, name, onRemove, mode, type }: FieldProps) => {
     ))
     .with("select", () => (
       <EditableSelectField
+        id={id}
         type={type}
         mode={mode}
         onRemove={onRemove}
@@ -69,6 +73,7 @@ const Field = ({ onEdit, name, onRemove, mode, type }: FieldProps) => {
     ))
     .with("checkbox", () => (
       <EditableCheckboxField
+        id={id}
         type={type}
         mode={mode}
         onRemove={onRemove}
@@ -79,7 +84,14 @@ const Field = ({ onEdit, name, onRemove, mode, type }: FieldProps) => {
     .exhaustive();
 };
 
-const EditableTextField = ({ onEdit, name, onRemove, mode }: FieldProps) => {
+const EditableTextField = ({
+  onEdit,
+  name,
+  onRemove,
+  mode,
+  id,
+}: FieldProps) => {
+  const dispatch = useAppDispatch();
   return (
     <div className={styles.field}>
       <div className={styles.fieldRow}>
@@ -93,7 +105,13 @@ const EditableTextField = ({ onEdit, name, onRemove, mode }: FieldProps) => {
         <form>
           <label>
             <span>Label</span>
-            <input />
+            <input
+              onChange={(e) =>
+                dispatch(
+                  actions.updateTextField({ id, label: e.currentTarget.value })
+                )
+              }
+            />
           </label>
           <label>
             <span>Default value</span>
@@ -101,7 +119,17 @@ const EditableTextField = ({ onEdit, name, onRemove, mode }: FieldProps) => {
           </label>
           <label>
             <span>Required</span>
-            <input type="radio" />
+            <input
+              type="checkbox"
+              onChange={() =>
+                dispatch(
+                  actions.addValidationRule({
+                    fieldId: id,
+                    type: "required",
+                  })
+                )
+              }
+            />
           </label>
         </form>
       )}

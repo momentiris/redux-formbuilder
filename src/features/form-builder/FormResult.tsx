@@ -13,7 +13,9 @@ export const FormResult = () => {
     <form
       className={styles.form}
       onSubmit={(e) =>
-        e.preventDefault()! || onFormSubmit(() => console.log("submitted"))
+        console.log(e)! ||
+        e.preventDefault()! ||
+        onFormSubmit((values: any) => console.log("submitted: ", values))
       }
     >
       <h3>Result</h3>
@@ -41,16 +43,27 @@ const TextField = ({
   field,
 }: {
   field: Extract<FormField, { type: "text" }>;
-}) => (
-  <label>
-    {field.label}
-    <input
-      className={styles.formField}
-      type="text"
-      defaultValue={field.defaultValue}
-    />
-  </label>
-);
+}) => {
+  const required = field.rules.some((rule) => rule.type === "required");
+
+  return (
+    <label>
+      <div>
+        <strong>
+          <small>{field.label} </small>
+        </strong>
+      </div>
+      <input
+        name="adde"
+        id="adde"
+        required={required}
+        className={styles.formField}
+        type="text"
+        defaultValue={field.defaultValue}
+      />
+    </label>
+  );
+};
 
 const SelectField = ({
   field,
@@ -58,7 +71,11 @@ const SelectField = ({
   field: Extract<FormField, { type: "select" }>;
 }) => (
   <label>
-    {field.label}
+    <div>
+      <strong>
+        <small>{field.label} </small>
+      </strong>
+    </div>
     <select
       className={styles.formField}
       defaultValue={field.defaultValue?.value}
@@ -76,7 +93,11 @@ const CheckboxField = ({
   field: Extract<FormField, { type: "checkbox" }>;
 }) => (
   <label>
-    {field.label}
+    <div>
+      <strong>
+        <small>{field.label} </small>
+      </strong>
+    </div>
     <input
       type="checkbox"
       className={styles.formField}

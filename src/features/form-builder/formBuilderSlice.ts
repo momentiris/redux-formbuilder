@@ -5,31 +5,34 @@ import { match } from "ts-pattern";
 export type TextField = {
   id: string;
   type: "text";
-  defaultValue: string | undefined;
-  label: string | undefined;
+  defaultValue?: string;
+  label?: string;
 };
+
 export type CheckboxField = {
   id: string;
   type: "checkbox";
   defaultValue: boolean;
-  label: string | undefined;
+  label?: string;
 };
 
 export type SelectField = {
   id: string;
   type: "select";
   options: Array<Option>;
-  defaultValue: Option | undefined;
-  label: string | undefined;
+  defaultValue?: Option;
+  label?: string;
 };
 
 export type SelectFieldEditables = Pick<
   SelectField,
   "label" | "defaultValue" | "options"
 >;
+
 export type TextFieldEditables = Pick<TextField, "label" | "defaultValue">;
 
 export type CheckboxFieldEditables = Pick<CheckboxField, "defaultValue">;
+
 export type FieldEditables =
   | SelectFieldEditables
   | TextFieldEditables
@@ -41,7 +44,6 @@ export type Field = TextField | CheckboxField | SelectField;
 
 type RequiredValidation = {
   type: "required";
-  required: boolean;
 };
 
 type ValidationRule = RequiredValidation;
@@ -169,6 +171,30 @@ const updateSelectField: CaseReducer<
   return { ...state, value: [updatedField] };
 };
 
+const addValidationRule: CaseReducer<
+  FormBuilderState,
+  PayloadAction<ValidationRule & { fieldId: Field["id"] }>
+> = (
+  state,
+  action: PayloadAction<ValidationRule & { fieldId: Field["id"] }>
+) => {
+  const field = state.value.find((x) => x.id === action.payload.fieldId);
+
+  if (!field) return state;
+
+  const updatedField: FormField = {
+    ...field,
+    rules: field.rules.concat({ type: action.payload.type }),
+  };
+
+  return {
+    ...state,
+    value: state.value.map((f) =>
+      f.id === updatedField.id ? updatedField : f
+    ),
+  };
+};
+
 export const formBuilderSlice = createSlice({
   name: "formBuilder",
   initialState,
@@ -178,6 +204,7 @@ export const formBuilderSlice = createSlice({
     updateTextField,
     updateSelectField,
     updateCheckboxField,
+    addValidationRule,
   },
 });
 
