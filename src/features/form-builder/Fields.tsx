@@ -48,8 +48,40 @@ type FieldProps = {
 };
 
 const Field = ({ onEdit, name, onRemove, mode, type }: FieldProps) => {
+  return match(type)
+    .with("text", () => (
+      <EditableTextField
+        type={type}
+        mode={mode}
+        onRemove={onRemove}
+        name={name}
+        onEdit={onEdit}
+      />
+    ))
+    .with("select", () => (
+      <EditableSelectField
+        type={type}
+        mode={mode}
+        onRemove={onRemove}
+        name={name}
+        onEdit={onEdit}
+      />
+    ))
+    .with("checkbox", () => (
+      <EditableCheckboxField
+        type={type}
+        mode={mode}
+        onRemove={onRemove}
+        name={name}
+        onEdit={onEdit}
+      />
+    ))
+    .exhaustive();
+};
+
+const EditableTextField = ({ onEdit, name, onRemove, mode }: FieldProps) => {
   return (
-    <div className={styles.field} onClick={onEdit}>
+    <div className={styles.field}>
       <div className={styles.fieldRow}>
         <div>{name}</div>
         <div>
@@ -58,71 +90,86 @@ const Field = ({ onEdit, name, onRemove, mode, type }: FieldProps) => {
         </div>
       </div>
       {mode === "expanded" && (
-        <div>
-          {match(type)
-            .with("text", () => <TextFieldDetails />)
-            .with("select", () => <SelectFieldDetails />)
-            .with("checkbox", () => <CheckboxFieldDetails />)
-            .exhaustive()}
-        </div>
+        <form>
+          <label>
+            <span>Label</span>
+            <input />
+          </label>
+          <label>
+            <span>Default value</span>
+            <input />
+          </label>
+          <label>
+            <span>Required</span>
+            <input type="radio" />
+          </label>
+        </form>
       )}
     </div>
   );
 };
 
-const TextFieldDetails = () => {
+const EditableSelectField = ({ onEdit, name, onRemove, mode }: FieldProps) => {
   return (
-    <form>
-      <label>
-        <span>Label</span>
-        <input />
-      </label>
-      <label>
-        <span>Default value</span>
-        <input />
-      </label>
-      <label>
-        <span>Required</span>
-        <input type="radio" />
-      </label>
-    </form>
+    <div className={styles.field}>
+      <div className={styles.fieldRow}>
+        <div>{name}</div>
+        <div>
+          <button onClick={onEdit}>Edit</button>
+          <button onClick={onRemove}>Remove</button>
+        </div>
+      </div>
+      {mode === "expanded" && (
+        <form>
+          <label>
+            <span>Label</span>
+            <input />
+          </label>
+          <label>
+            <span>Default value</span>
+            <input />
+          </label>
+          <label>
+            <span>Required</span>
+            <input type="radio" />
+          </label>
+        </form>
+      )}
+    </div>
   );
 };
 
-const SelectFieldDetails = () => {
+const EditableCheckboxField = ({
+  onEdit,
+  name,
+  onRemove,
+  mode,
+}: FieldProps) => {
   return (
-    <form>
-      <label>
-        <span>Label</span>
-        <input />
-      </label>
-      <label>
-        <span>Default value</span>
-        <input />
-      </label>
-      <label>
-        <span>Required</span>
-        <input type="radio" />
-      </label>
-    </form>
-  );
-};
-
-const CheckboxFieldDetails = () => {
-  return (
-    <form>
-      <label>
-        <span>Label</span>
-        <input />
-      </label>
-      <label>
-        <span>Default value</span>
-        <input />
-      </label>
-      <label>
-        <span>Required</span>
-        <input type="radio" />
-      </label>
-    </form>
+    <div className={styles.field}>
+      <div className={styles.fieldRow}>
+        <div>{name}</div>
+        <div>
+          <button onClick={onEdit}>Edit</button>
+          <button onClick={onRemove}>Remove</button>
+        </div>
+      </div>
+      {mode === "expanded" && (
+        <form>
+          <label>
+            <span>Label</span>
+            <input />
+          </label>
+          <label>
+            <span>Default value</span>
+            <input />
+          </label>
+          <label>
+            <span>Required</span>
+            <input type="radio" />
+          </label>
+        </form>
+      )}
+    </div>
   );
 };
