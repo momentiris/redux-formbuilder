@@ -1,13 +1,5 @@
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import {
-  actions,
-  formBuilderValue,
-  Field as FieldType,
-  FormField,
-  TextField,
-  SelectField,
-  CheckboxField,
-} from "./formBuilderSlice";
+import { actions, formBuilderValue, FormField } from "./formBuilderSlice";
 import styles from "./Fields.module.css";
 import { useState } from "react";
 import { match } from "ts-pattern";
@@ -141,7 +133,19 @@ const EditableSelectField = (
     field: Extract<FormField, { type: "select" }>;
   }
 ) => {
-  const state = useAppSelector(formBuilderValue);
+  const [option, setOption] = useState("");
+  const dispatch = useAppDispatch();
+
+  const onAddOption = (value: string) => {
+    setOption("");
+    dispatch(
+      actions.addSelectOption({
+        id: props.field.id,
+        value,
+      })
+    );
+  };
+
   return (
     <div className={styles.field}>
       <div className={styles.fieldRow}>
@@ -162,8 +166,35 @@ const EditableSelectField = (
             <input />
           </label>
           <label>
+            <div>Options</div>
+            <div>
+              <input
+                value={option}
+                onChange={(e) => setOption(e.currentTarget.value)}
+              />
+              <button type="button" onClick={() => onAddOption(option)}>
+                Add
+              </button>
+            </div>
+            <div>
+              {props.field.options.map((option) => (
+                <div key={option.id}>{option.value}</div>
+              ))}
+            </div>
+          </label>
+          <label>
             <span>Required</span>
-            <input type="radio" />
+            <input
+              type="checkbox"
+              onChange={() =>
+                dispatch(
+                  actions.addValidationRule({
+                    fieldId: props.field.id,
+                    type: "required",
+                  })
+                )
+              }
+            />
           </label>
         </form>
       )}
@@ -176,6 +207,7 @@ const EditableCheckboxField = (
     field: Extract<FormField, { type: "checkbox" }>;
   }
 ) => {
+  const dispatch = useAppDispatch();
   return (
     <div className={styles.field}>
       <div className={styles.fieldRow}>
@@ -197,7 +229,17 @@ const EditableCheckboxField = (
           </label>
           <label>
             <span>Required</span>
-            <input type="radio" />
+            <input
+              type="checkbox"
+              onChange={() =>
+                dispatch(
+                  actions.addValidationRule({
+                    fieldId: props.field.id,
+                    type: "required",
+                  })
+                )
+              }
+            />
           </label>
         </form>
       )}

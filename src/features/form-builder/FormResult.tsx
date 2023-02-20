@@ -69,39 +69,47 @@ const SelectField = ({
   field,
 }: {
   field: Extract<FormField, { type: "select" }>;
-}) => (
-  <label>
-    <div>
-      <strong>
-        <small>{field.label} </small>
-      </strong>
-    </div>
-    <select
-      className={styles.formField}
-      defaultValue={field.defaultValue?.value}
-    >
-      {field.options.map((option) => (
-        <option key={option.id}>{option.value}</option>
-      ))}
-    </select>
-  </label>
-);
+}) => {
+  const required = field.rules.some((rule) => rule.type === "required");
+  return (
+    <label>
+      <div>
+        <strong>
+          <small>{field.label} </small>
+        </strong>
+      </div>
+      <select
+        required={required}
+        className={styles.formField}
+        defaultValue={field.defaultValue?.value}
+      >
+        {field.options.map((option) => (
+          <option key={option.id}>{option.value}</option>
+        ))}
+      </select>
+    </label>
+  );
+};
 
 const CheckboxField = ({
   field,
 }: {
   field: Extract<FormField, { type: "checkbox" }>;
-}) => (
-  <label>
-    <div>
-      <strong>
-        <small>{field.label} </small>
-      </strong>
-    </div>
-    <input
-      type="checkbox"
-      className={styles.formField}
-      defaultChecked={field.defaultValue}
-    />
-  </label>
-);
+}) => {
+  const required = field.rules.some((rule) => rule.type === "required");
+  return (
+    <label>
+      <div>
+        <strong>
+          <small>{field.label} </small>
+        </strong>
+      </div>
+      <input
+        type="checkbox"
+        className={styles.formField}
+        defaultChecked={field.defaultValue}
+        required={required}
+      />
+    </label>
+  );
+};

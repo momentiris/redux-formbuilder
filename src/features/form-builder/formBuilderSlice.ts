@@ -2,6 +2,8 @@ import { CaseReducer, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "../../app/store";
 import { match } from "ts-pattern";
 
+const id = () => Math.random().toString();
+
 export type TextField = {
   id: string;
   type: "text";
@@ -49,7 +51,6 @@ type RequiredValidation = {
 type ValidationRule = RequiredValidation;
 type ValidationRules = { rules: Array<ValidationRule> };
 type ValidationError = { type: ValidationRule["type"]; message: string };
-
 type ValidationResult = {
   result:
     | { type: "negative" }
@@ -138,10 +139,7 @@ const updateTextField: CaseReducer<
 const updateCheckboxField: CaseReducer<
   FormBuilderState,
   PayloadAction<CheckboxFieldEditables & { id: Field["id"] }>
-> = (
-  state,
-  action: PayloadAction<CheckboxFieldEditables & { id: Field["id"] }>
-) => {
+> = (state, action) => {
   const field = state.value.find(
     (x): x is Extract<FormField, { type: "checkbox" }> =>
       x.id === action.payload.id && x.type === "checkbox"
@@ -155,11 +153,8 @@ const updateCheckboxField: CaseReducer<
 
 const updateSelectField: CaseReducer<
   FormBuilderState,
-  PayloadAction<SelectFieldEditables & { id: Field["id"] }>
-> = (
-  state,
-  action: PayloadAction<SelectFieldEditables & { id: Field["id"] }>
-) => {
+  PayloadAction<Partial<SelectFieldEditables> & { id: Field["id"] }>
+> = (state, action) => {
   const field = state.value.find(
     (x): x is Extract<FormField, { type: "select" }> =>
       x.id === action.payload.id && x.type === "select"
@@ -171,13 +166,34 @@ const updateSelectField: CaseReducer<
   return { ...state, value: [updatedField] };
 };
 
+const addSelectOption: CaseReducer<
+  FormBuilderState,
+  PayloadAction<{ id: Field["id"]; value: string }>
+> = (state, action) => {
+  const field = state.value.find(
+    (x): x is Extract<FormField, { type: "select" }> =>
+      x.id === action.payload.id && x.type === "select"
+  );
+
+  if (!field) return state;
+
+  const updatedField: typeof field = {
+    ...field,
+    options: field.options.concat({ id: id(), value: action.payload.value }),
+  };
+
+  return {
+    ...state,
+    value: state.value.map((f) =>
+      f.id === updatedField.id ? updatedField : f
+    ),
+  };
+};
+
 const addValidationRule: CaseReducer<
   FormBuilderState,
   PayloadAction<ValidationRule & { fieldId: Field["id"] }>
-> = (
-  state,
-  action: PayloadAction<ValidationRule & { fieldId: Field["id"] }>
-) => {
+> = (state, action) => {
   const field = state.value.find((x) => x.id === action.payload.fieldId);
 
   if (!field) return state;
@@ -230,6 +246,7 @@ export const formBuilderSlice = createSlice({
     updateCheckboxField,
     addValidationRule,
     removeValidationRule,
+    addSelectOption,
   },
 });
 
