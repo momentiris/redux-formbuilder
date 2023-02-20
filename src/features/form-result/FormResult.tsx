@@ -9,7 +9,6 @@ export const FormResult = () => {
     fn();
   };
 
-  console.log(state);
   return (
     <form
       className={styles.form}
@@ -98,7 +97,6 @@ const CheckboxField = ({
   field: Extract<FormField, { type: "checkbox" }>;
 }) => {
   const required = field.rules.some((rule) => rule.type === "required");
-  console.log(field);
   return (
     <label>
       <div>

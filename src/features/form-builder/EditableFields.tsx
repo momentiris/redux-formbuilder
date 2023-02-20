@@ -182,7 +182,7 @@ const EditableSelectField = (
             label="Label"
             onChange={(v) =>
               dispatch(
-                actions.updateTextField({
+                actions.updateSelectField({
                   id: props.field.id,
                   label: v,
                 })
