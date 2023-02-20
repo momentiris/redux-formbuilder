@@ -3,12 +3,16 @@ import {
   actions,
   formBuilderValue,
   Field as FieldType,
+  FormField,
+  TextField,
+  SelectField,
+  CheckboxField,
 } from "./formBuilderSlice";
 import styles from "./Fields.module.css";
 import { useState } from "react";
 import { match } from "ts-pattern";
 
-export const Fields = () => {
+export const EditableFields = () => {
   const state = useAppSelector(formBuilderValue);
   const dispatch = useAppDispatch();
 
@@ -25,90 +29,85 @@ export const Fields = () => {
 
   return (
     <div className={styles.fields}>
-      {state.map((field) => (
-        <Field
-          onEdit={() => onEdit(field.id)}
-          id={field.id}
-          onRemove={() => dispatch(actions.removeField(field.id))}
-          name={field.type}
-          key={field.id}
-          mode={expanded === field.id ? "expanded" : "collapsed"}
-          type={field.type}
-        />
-      ))}
+      {state.map((field) => {
+        const mode = expanded === field.id ? "expanded" : "collapsed";
+
+        return (
+          <EditableField
+            key={field.id}
+            mode={mode}
+            onEdit={() => onEdit(field.id)}
+            onRemove={() => dispatch(actions.removeField(field.id))}
+            field={field}
+          />
+        );
+      })}
     </div>
   );
 };
 
 type FieldProps = {
   onEdit: () => void;
-  name: string;
   onRemove: () => void;
   mode: "collapsed" | "expanded";
-  type: FieldType["type"];
-  id: string;
+  field: FormField;
 };
 
-const Field = ({ onEdit, name, onRemove, mode, type, id }: FieldProps) => {
-  return match(type)
-    .with("text", () => (
+const EditableField = (props: FieldProps) => {
+  return match(props.field)
+    .with({ type: "text" }, (field) => (
       <EditableTextField
-        id={id}
-        type={type}
-        mode={mode}
-        onRemove={onRemove}
-        name={name}
-        onEdit={onEdit}
+        field={field}
+        mode={props.mode}
+        onRemove={props.onRemove}
+        onEdit={props.onEdit}
       />
     ))
-    .with("select", () => (
+    .with({ type: "select" }, (field) => (
       <EditableSelectField
-        id={id}
-        type={type}
-        mode={mode}
-        onRemove={onRemove}
-        name={name}
-        onEdit={onEdit}
+        field={field}
+        mode={props.mode}
+        onRemove={props.onRemove}
+        onEdit={props.onEdit}
       />
     ))
-    .with("checkbox", () => (
+    .with({ type: "checkbox" }, (field) => (
       <EditableCheckboxField
-        id={id}
-        type={type}
-        mode={mode}
-        onRemove={onRemove}
-        name={name}
-        onEdit={onEdit}
+        field={field}
+        mode={props.mode}
+        onRemove={props.onRemove}
+        onEdit={props.onEdit}
       />
     ))
     .exhaustive();
 };
 
-const EditableTextField = ({
-  onEdit,
-  name,
-  onRemove,
-  mode,
-  id,
-}: FieldProps) => {
+const EditableTextField = (
+  props: FieldProps & {
+    field: Extract<FormField, { type: "text" }>;
+  }
+) => {
   const dispatch = useAppDispatch();
   return (
     <div className={styles.field}>
       <div className={styles.fieldRow}>
-        <div>{name}</div>
+        <div>Text</div>
         <div>
-          <button onClick={onEdit}>Edit</button>
-          <button onClick={onRemove}>Remove</button>
+          <button onClick={props.onEdit}>Edit</button>
+          <button onClick={props.onRemove}>Remove</button>
         </div>
       </div>
-      {mode === "expanded" && (
+      {props.mode === "expanded" && (
         <form>
           <label>
             <span>Label</span>
             <input
               onChange={(e) =>
                 dispatch(
-                  actions.updateTextField({ id, label: e.currentTarget.value })
+                  actions.updateTextField({
+                    id: props.field.id,
+                    label: e.currentTarget.value,
+                  })
                 )
               }
             />
@@ -124,7 +123,7 @@ const EditableTextField = ({
               onChange={() =>
                 dispatch(
                   actions.addValidationRule({
-                    fieldId: id,
+                    fieldId: props.field.id,
                     type: "required",
                   })
                 )
@@ -137,24 +136,29 @@ const EditableTextField = ({
   );
 };
 
-const EditableSelectField = ({ onEdit, name, onRemove, mode }: FieldProps) => {
+const EditableSelectField = (
+  props: FieldProps & {
+    field: Extract<FormField, { type: "select" }>;
+  }
+) => {
+  const state = useAppSelector(formBuilderValue);
   return (
     <div className={styles.field}>
       <div className={styles.fieldRow}>
-        <div>{name}</div>
+        <div>Select</div>
         <div>
-          <button onClick={onEdit}>Edit</button>
-          <button onClick={onRemove}>Remove</button>
+          <button onClick={props.onEdit}>Edit</button>
+          <button onClick={props.onRemove}>Remove</button>
         </div>
       </div>
-      {mode === "expanded" && (
+      {props.mode === "expanded" && (
         <form>
           <label>
-            <span>Label</span>
+            <div>Label</div>
             <input />
           </label>
           <label>
-            <span>Default value</span>
+            <div>Default value</div>
             <input />
           </label>
           <label>
@@ -167,22 +171,21 @@ const EditableSelectField = ({ onEdit, name, onRemove, mode }: FieldProps) => {
   );
 };
 
-const EditableCheckboxField = ({
-  onEdit,
-  name,
-  onRemove,
-  mode,
-}: FieldProps) => {
+const EditableCheckboxField = (
+  props: FieldProps & {
+    field: Extract<FormField, { type: "checkbox" }>;
+  }
+) => {
   return (
     <div className={styles.field}>
       <div className={styles.fieldRow}>
-        <div>{name}</div>
+        <div>Checkbox</div>
         <div>
-          <button onClick={onEdit}>Edit</button>
-          <button onClick={onRemove}>Remove</button>
+          <button onClick={props.onEdit}>Edit</button>
+          <button onClick={props.onRemove}>Remove</button>
         </div>
       </div>
-      {mode === "expanded" && (
+      {props.mode === "expanded" && (
         <form>
           <label>
             <span>Label</span>
