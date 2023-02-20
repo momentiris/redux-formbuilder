@@ -195,6 +195,30 @@ const addValidationRule: CaseReducer<
   };
 };
 
+const removeValidationRule: CaseReducer<
+  FormBuilderState,
+  PayloadAction<ValidationRule & { fieldId: Field["id"] }>
+> = (
+  state,
+  action: PayloadAction<ValidationRule & { fieldId: Field["id"] }>
+) => {
+  const field = state.value.find((x) => x.id === action.payload.fieldId);
+
+  if (!field) return state;
+
+  const updatedField: FormField = {
+    ...field,
+    rules: field.rules.filter((rule) => rule.type !== action.payload.type),
+  };
+
+  return {
+    ...state,
+    value: state.value.map((f) =>
+      f.id === updatedField.id ? updatedField : f
+    ),
+  };
+};
+
 export const formBuilderSlice = createSlice({
   name: "formBuilder",
   initialState,
@@ -205,6 +229,7 @@ export const formBuilderSlice = createSlice({
     updateSelectField,
     updateCheckboxField,
     addValidationRule,
+    removeValidationRule,
   },
 });
 
