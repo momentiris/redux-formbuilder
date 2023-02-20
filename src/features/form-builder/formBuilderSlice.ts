@@ -33,7 +33,10 @@ export type SelectFieldEditables = Pick<
 
 export type TextFieldEditables = Pick<TextField, "label" | "defaultValue">;
 
-export type CheckboxFieldEditables = Pick<CheckboxField, "defaultValue">;
+export type CheckboxFieldEditables = Pick<
+  CheckboxField,
+  "defaultValue" | "label"
+>;
 
 export type FieldEditables =
   | SelectFieldEditables
@@ -75,7 +78,7 @@ const createTextField = (): FormField => ({
   defaultValue: "",
   rules: [],
   result: { type: "negative" },
-  id: Math.random().toString(),
+  id: id(),
 });
 
 const createCheckboxField = (): FormField => ({
@@ -84,7 +87,7 @@ const createCheckboxField = (): FormField => ({
   defaultValue: false,
   rules: [],
   result: { type: "negative" },
-  id: Math.random().toString(),
+  id: id(),
 });
 
 const createSelectField = (): FormField => ({
@@ -94,7 +97,7 @@ const createSelectField = (): FormField => ({
   defaultValue: undefined,
   rules: [],
   result: { type: "negative" },
-  id: Math.random().toString(),
+  id: id(),
 });
 
 const addField: CaseReducer<FormBuilderState, PayloadAction<Field["type"]>> = (
@@ -133,12 +136,17 @@ const updateTextField: CaseReducer<
   if (!field) return state;
 
   const updatedField = Object.assign({}, field, action.payload);
-  return { ...state, value: [updatedField] };
+  return {
+    ...state,
+    value: state.value.map((f) =>
+      f.id === updatedField.id ? updatedField : f
+    ),
+  };
 };
 
 const updateCheckboxField: CaseReducer<
   FormBuilderState,
-  PayloadAction<CheckboxFieldEditables & { id: Field["id"] }>
+  PayloadAction<Partial<CheckboxFieldEditables> & { id: Field["id"] }>
 > = (state, action) => {
   const field = state.value.find(
     (x): x is Extract<FormField, { type: "checkbox" }> =>

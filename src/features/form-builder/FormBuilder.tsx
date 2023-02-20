@@ -1,7 +1,7 @@
 import { AddFormField } from "./AddFormField";
 import "./FormBuilder.module.css";
-import { EditableFields } from "./Fields";
-import { FormResult } from "./FormResult";
+import { EditableFields } from "./EditableFields";
+import { FormResult } from "../form-result/FormResult";
 
 export function FormBuilder() {
   return (

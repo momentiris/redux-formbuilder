@@ -1,23 +1,16 @@
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { actions, formBuilderValue, FormField } from "./formBuilderSlice";
-import styles from "./Fields.module.css";
+import styles from "./EditableFields.module.css";
 import { useState } from "react";
 import { match } from "ts-pattern";
 
 export const EditableFields = () => {
+  const [expanded, setExpanded] = useState<string>();
   const state = useAppSelector(formBuilderValue);
   const dispatch = useAppDispatch();
 
-  const [expanded, setExpanded] = useState<string>();
-
-  const onEdit = (fieldId: string) => {
-    if (expanded === fieldId) {
-      return setExpanded(undefined);
-    }
-
-    setExpanded(fieldId);
-    // dispatch(actions.removeField(fieldId));
-  };
+  const onEdit = (fieldId: string) =>
+    setExpanded(expanded === fieldId ? undefined : fieldId);
 
   return (
     <div className={styles.fields}>
@@ -74,6 +67,25 @@ const EditableField = (props: FieldProps) => {
     .exhaustive();
 };
 
+const TextField = ({
+  label,
+  onChange,
+  value,
+}: {
+  label: string;
+  onChange: (value: string) => void;
+  value?: string;
+}) => (
+  <label>
+    <span>{label}</span>
+    {value === undefined ? (
+      <input onChange={(e) => onChange(e.currentTarget.value)} />
+    ) : (
+      <input value={value} onChange={(e) => onChange(e.currentTarget.value)} />
+    )}
+  </label>
+);
+
 const EditableTextField = (
   props: FieldProps & {
     field: Extract<FormField, { type: "text" }>;
@@ -93,21 +105,29 @@ const EditableTextField = (
         <form>
           <label>
             <span>Label</span>
-            <input
-              onChange={(e) =>
+            <TextField
+              label="Label"
+              onChange={(v) =>
                 dispatch(
                   actions.updateTextField({
                     id: props.field.id,
-                    label: e.currentTarget.value,
+                    label: v,
                   })
                 )
               }
             />
           </label>
-          <label>
-            <span>Default value</span>
-            <input />
-          </label>
+          <TextField
+            label="Default value"
+            onChange={(v) =>
+              dispatch(
+                actions.updateTextField({
+                  id: props.field.id,
+                  defaultValue: v,
+                })
+              )
+            }
+          />
           <label>
             <span>Required</span>
             <input
@@ -137,13 +157,14 @@ const EditableSelectField = (
   const dispatch = useAppDispatch();
 
   const onAddOption = (value: string) => {
-    setOption("");
     dispatch(
       actions.addSelectOption({
         id: props.field.id,
         value,
       })
     );
+
+    setOption("");
   };
 
   return (
@@ -157,31 +178,36 @@ const EditableSelectField = (
       </div>
       {props.mode === "expanded" && (
         <form>
-          <label>
-            <div>Label</div>
-            <input />
-          </label>
-          <label>
-            <div>Default value</div>
-            <input />
-          </label>
-          <label>
-            <div>Options</div>
-            <div>
-              <input
-                value={option}
-                onChange={(e) => setOption(e.currentTarget.value)}
-              />
-              <button type="button" onClick={() => onAddOption(option)}>
-                Add
-              </button>
-            </div>
-            <div>
-              {props.field.options.map((option) => (
-                <div key={option.id}>{option.value}</div>
-              ))}
-            </div>
-          </label>
+          <TextField
+            label="Label"
+            onChange={(v) =>
+              dispatch(
+                actions.updateTextField({
+                  id: props.field.id,
+                  label: v,
+                })
+              )
+            }
+          />
+          <div style={{ display: "flex", alignItems: "flex-end" }}>
+            <TextField
+              value={option}
+              label="Options"
+              onChange={(v) => setOption(v)}
+            />
+            <button
+              type="button"
+              disabled={!Boolean(option)}
+              onClick={() => onAddOption(option)}
+            >
+              Add
+            </button>
+          </div>
+          <div>
+            {props.field.options.map((option) => (
+              <div key={option.id}>{option.value}</div>
+            ))}
+          </div>
           <label>
             <span>Required</span>
             <input
@@ -219,23 +245,26 @@ const EditableCheckboxField = (
       </div>
       {props.mode === "expanded" && (
         <form>
-          <label>
-            <span>Label</span>
-            <input />
-          </label>
+          <TextField
+            label="Label"
+            onChange={(v) =>
+              dispatch(
+                actions.updateCheckboxField({
+                  id: props.field.id,
+                  label: v,
+                })
+              )
+            }
+          />
           <label>
             <span>Default value</span>
-            <input />
-          </label>
-          <label>
-            <span>Required</span>
             <input
               type="checkbox"
-              onChange={() =>
+              onChange={(e) =>
                 dispatch(
-                  actions.addValidationRule({
-                    fieldId: props.field.id,
-                    type: "required",
+                  actions.updateCheckboxField({
+                    id: props.field.id,
+                    defaultValue: e.currentTarget.checked,
                   })
                 )
               }
