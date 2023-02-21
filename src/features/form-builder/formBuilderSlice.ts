@@ -1,8 +1,12 @@
 import { CaseReducer, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "../../app/store";
 import { match } from "ts-pattern";
-
-const id = () => Math.random().toString();
+import {
+  createCheckboxField,
+  createSelectField,
+  createTextField,
+  id,
+} from "./utils";
 
 export type TextField = {
   id: string;
@@ -64,6 +68,10 @@ type WithValidation<T extends Field> = T & ValidationRules & ValidationResult;
 
 export type FormField = WithValidation<Field>;
 
+export type TextFormField = Extract<FormField, { type: "text" }>;
+export type SelectFormField = Extract<FormField, { type: "select" }>;
+export type CheckboxFormField = Extract<FormField, { type: "checkbox" }>;
+
 export interface FormBuilderState {
   value: Array<FormField>;
 }
@@ -71,34 +79,6 @@ export interface FormBuilderState {
 const initialState: FormBuilderState = {
   value: [],
 };
-
-const createTextField = (): FormField => ({
-  type: "text",
-  label: undefined,
-  defaultValue: "",
-  rules: [],
-  result: { type: "negative" },
-  id: id(),
-});
-
-const createCheckboxField = (): FormField => ({
-  type: "checkbox",
-  label: undefined,
-  defaultValue: false,
-  rules: [],
-  result: { type: "negative" },
-  id: id(),
-});
-
-const createSelectField = (): FormField => ({
-  type: "select",
-  options: [],
-  label: undefined,
-  defaultValue: undefined,
-  rules: [],
-  result: { type: "negative" },
-  id: id(),
-});
 
 const addField: CaseReducer<FormBuilderState, PayloadAction<Field["type"]>> = (
   state,
@@ -124,13 +104,9 @@ const removeField: CaseReducer<FormBuilderState, PayloadAction<Field["id"]>> = (
 const updateTextField: CaseReducer<
   FormBuilderState,
   PayloadAction<TextFieldEditables & { id: Field["id"] }>
-> = (
-  state,
-  action: PayloadAction<TextFieldEditables & { id: Field["id"] }>
-) => {
+> = (state, action) => {
   const field = state.value.find(
-    (x): x is Extract<FormField, { type: "text" }> =>
-      x.id === action.payload.id && x.type === "text"
+    (x): x is TextFormField => x.id === action.payload.id && x.type === "text"
   );
 
   if (!field) return state;
@@ -149,7 +125,7 @@ const updateCheckboxField: CaseReducer<
   PayloadAction<Partial<CheckboxFieldEditables> & { id: Field["id"] }>
 > = (state, action) => {
   const field = state.value.find(
-    (x): x is Extract<FormField, { type: "checkbox" }> =>
+    (x): x is CheckboxFormField =>
       x.id === action.payload.id && x.type === "checkbox"
   );
 
@@ -164,7 +140,7 @@ const updateSelectField: CaseReducer<
   PayloadAction<Partial<SelectFieldEditables> & { id: Field["id"] }>
 > = (state, action) => {
   const field = state.value.find(
-    (x): x is Extract<FormField, { type: "select" }> =>
+    (x): x is SelectFormField =>
       x.id === action.payload.id && x.type === "select"
   );
 
@@ -179,7 +155,7 @@ const addSelectOption: CaseReducer<
   PayloadAction<{ id: Field["id"]; value: string }>
 > = (state, action) => {
   const field = state.value.find(
-    (x): x is Extract<FormField, { type: "select" }> =>
+    (x): x is SelectFormField =>
       x.id === action.payload.id && x.type === "select"
   );
 
@@ -222,10 +198,7 @@ const addValidationRule: CaseReducer<
 const removeValidationRule: CaseReducer<
   FormBuilderState,
   PayloadAction<ValidationRule & { fieldId: Field["id"] }>
-> = (
-  state,
-  action: PayloadAction<ValidationRule & { fieldId: Field["id"] }>
-) => {
+> = (state, action) => {
   const field = state.value.find((x) => x.id === action.payload.fieldId);
 
   if (!field) return state;
@@ -258,21 +231,6 @@ export const formBuilderSlice = createSlice({
   },
 });
 
-// The function below is called a selector and allows us to select a value from
-// the state. Selectors can also be defined inline where they're used instead of
-// in the slice file. For example: `useSelector((state: RootState) => state.counter.value)`
 export const formBuilderValue = (state: RootState) => state.formBuilder.value;
-
 export const actions = formBuilderSlice.actions;
-// We can also write thunks by hand, which may contain both sync and async logic.
-// Here's an example of conditionally dispatching actions based on current state.
-// export const incrementIfOdd =
-// (amount: number): AppThunk =>
-// (dispatch, getState) => {
-// const currentValue = selectCount(getState());
-// if (currentValue % 2 === 1) {
-// dispatch(incrementByAmount(amount));
-// }
-// };
-
 export default formBuilderSlice.reducer;

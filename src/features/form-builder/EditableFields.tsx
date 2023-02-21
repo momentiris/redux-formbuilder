@@ -1,5 +1,12 @@
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import { actions, formBuilderValue, FormField } from "./formBuilderSlice";
+import {
+  actions,
+  CheckboxField,
+  formBuilderValue,
+  FormField,
+  SelectFormField,
+  TextFormField,
+} from "./formBuilderSlice";
 import styles from "./EditableFields.module.css";
 import { useState } from "react";
 import { match } from "ts-pattern";
@@ -17,15 +24,32 @@ export const EditableFields = () => {
       {state.map((field) => {
         const mode = expanded === field.id ? "expanded" : "collapsed";
 
-        return (
-          <EditableField
-            key={field.id}
-            mode={mode}
-            onEdit={() => onEdit(field.id)}
-            onRemove={() => dispatch(actions.removeField(field.id))}
-            field={field}
-          />
-        );
+        return match(field)
+          .with({ type: "text" }, (field) => (
+            <EditableTextField
+              field={field}
+              mode={mode}
+              onRemove={() => dispatch(actions.removeField(field.id))}
+              onEdit={() => onEdit(field.id)}
+            />
+          ))
+          .with({ type: "select" }, (field) => (
+            <EditableSelectField
+              field={field}
+              mode={mode}
+              onEdit={() => onEdit(field.id)}
+              onRemove={() => dispatch(actions.removeField(field.id))}
+            />
+          ))
+          .with({ type: "checkbox" }, (field) => (
+            <EditableCheckboxField
+              field={field}
+              mode={mode}
+              onEdit={() => onEdit(field.id)}
+              onRemove={() => dispatch(actions.removeField(field.id))}
+            />
+          ))
+          .exhaustive();
       })}
     </div>
   );
@@ -36,35 +60,6 @@ type FieldProps = {
   onRemove: () => void;
   mode: "collapsed" | "expanded";
   field: FormField;
-};
-
-const EditableField = (props: FieldProps) => {
-  return match(props.field)
-    .with({ type: "text" }, (field) => (
-      <EditableTextField
-        field={field}
-        mode={props.mode}
-        onRemove={props.onRemove}
-        onEdit={props.onEdit}
-      />
-    ))
-    .with({ type: "select" }, (field) => (
-      <EditableSelectField
-        field={field}
-        mode={props.mode}
-        onRemove={props.onRemove}
-        onEdit={props.onEdit}
-      />
-    ))
-    .with({ type: "checkbox" }, (field) => (
-      <EditableCheckboxField
-        field={field}
-        mode={props.mode}
-        onRemove={props.onRemove}
-        onEdit={props.onEdit}
-      />
-    ))
-    .exhaustive();
 };
 
 const TextField = ({
@@ -88,10 +83,11 @@ const TextField = ({
 
 const EditableTextField = (
   props: FieldProps & {
-    field: Extract<FormField, { type: "text" }>;
+    field: TextFormField;
   }
 ) => {
   const dispatch = useAppDispatch();
+  const isRequired = props.field.rules.some((x) => x.type === "required");
   return (
     <div className={styles.field}>
       <div className={styles.fieldRow}>
@@ -103,20 +99,18 @@ const EditableTextField = (
       </div>
       {props.mode === "expanded" && (
         <form>
-          <label>
-            <span>Label</span>
-            <TextField
-              label="Label"
-              onChange={(v) =>
-                dispatch(
-                  actions.updateTextField({
-                    id: props.field.id,
-                    label: v,
-                  })
-                )
-              }
-            />
-          </label>
+          <TextField
+            value={props.field.label}
+            label="Label"
+            onChange={(v) =>
+              dispatch(
+                actions.updateTextField({
+                  id: props.field.id,
+                  label: v,
+                })
+              )
+            }
+          />
           <TextField
             label="Default value"
             onChange={(v) =>
@@ -134,10 +128,15 @@ const EditableTextField = (
               type="checkbox"
               onChange={() =>
                 dispatch(
-                  actions.addValidationRule({
-                    fieldId: props.field.id,
-                    type: "required",
-                  })
+                  isRequired
+                    ? actions.removeValidationRule({
+                        fieldId: props.field.id,
+                        type: "required",
+                      })
+                    : actions.addValidationRule({
+                        fieldId: props.field.id,
+                        type: "required",
+                      })
                 )
               }
             />
@@ -150,7 +149,7 @@ const EditableTextField = (
 
 const EditableSelectField = (
   props: FieldProps & {
-    field: Extract<FormField, { type: "select" }>;
+    field: SelectFormField;
   }
 ) => {
   const [option, setOption] = useState("");
@@ -230,7 +229,7 @@ const EditableSelectField = (
 
 const EditableCheckboxField = (
   props: FieldProps & {
-    field: Extract<FormField, { type: "checkbox" }>;
+    field: CheckboxField;
   }
 ) => {
   const dispatch = useAppDispatch();
