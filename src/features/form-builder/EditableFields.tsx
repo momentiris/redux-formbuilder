@@ -27,6 +27,7 @@ export const EditableFields = () => {
         return match(field)
           .with({ type: "text" }, (field) => (
             <EditableTextField
+              key={field.id}
               field={field}
               mode={mode}
               onRemove={() => dispatch(actions.removeField(field.id))}
@@ -35,6 +36,7 @@ export const EditableFields = () => {
           ))
           .with({ type: "select" }, (field) => (
             <EditableSelectField
+              key={field.id}
               field={field}
               mode={mode}
               onEdit={() => onEdit(field.id)}
@@ -43,6 +45,7 @@ export const EditableFields = () => {
           ))
           .with({ type: "checkbox" }, (field) => (
             <EditableCheckboxField
+              key={field.id}
               field={field}
               mode={mode}
               onEdit={() => onEdit(field.id)}
@@ -72,7 +75,7 @@ const TextField = ({
   value?: string;
 }) => (
   <label>
-    <span>{label}</span>
+    <div>{label}</div>
     {value === undefined ? (
       <input onChange={(e) => onChange(e.currentTarget.value)} />
     ) : (
@@ -88,6 +91,7 @@ const EditableTextField = (
 ) => {
   const dispatch = useAppDispatch();
   const isRequired = props.field.rules.some((x) => x.type === "required");
+
   return (
     <div className={styles.field}>
       <div className={styles.fieldRow}>
@@ -113,6 +117,7 @@ const EditableTextField = (
           />
           <TextField
             label="Default value"
+            value={props.field.defaultValue}
             onChange={(v) =>
               dispatch(
                 actions.updateTextField({
@@ -204,7 +209,18 @@ const EditableSelectField = (
           </div>
           <div>
             {props.field.options.map((option) => (
-              <div key={option.id}>{option.value}</div>
+              <div key={option.id}>
+                {option.value}
+                <button
+                  onClick={() =>
+                    dispatch(
+                      actions.removeSelectOption({ id: props.field.id, option })
+                    )
+                  }
+                >
+                  x
+                </button>
+              </div>
             ))}
           </div>
           <label>
@@ -255,20 +271,6 @@ const EditableCheckboxField = (
               )
             }
           />
-          <label>
-            <span>Default value</span>
-            <input
-              type="checkbox"
-              onChange={(e) =>
-                dispatch(
-                  actions.updateCheckboxField({
-                    id: props.field.id,
-                    defaultValue: e.currentTarget.checked,
-                  })
-                )
-              }
-            />
-          </label>
         </form>
       )}
     </div>

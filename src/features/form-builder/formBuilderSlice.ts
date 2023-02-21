@@ -132,7 +132,12 @@ const updateCheckboxField: CaseReducer<
   if (!field) return state;
 
   const updatedField = Object.assign({}, field, action.payload);
-  return { ...state, value: [updatedField] };
+  return {
+    ...state,
+    value: state.value.map((f) =>
+      f.id === updatedField.id ? updatedField : f
+    ),
+  };
 };
 
 const updateSelectField: CaseReducer<
@@ -147,7 +152,12 @@ const updateSelectField: CaseReducer<
   if (!field) return state;
 
   const updatedField = Object.assign({}, field, action.payload);
-  return { ...state, value: [updatedField] };
+  return {
+    ...state,
+    value: state.value.map((f) =>
+      f.id === updatedField.id ? updatedField : f
+    ),
+  };
 };
 
 const addSelectOption: CaseReducer<
@@ -164,6 +174,30 @@ const addSelectOption: CaseReducer<
   const updatedField: typeof field = {
     ...field,
     options: field.options.concat({ id: id(), value: action.payload.value }),
+  };
+
+  return {
+    ...state,
+    value: state.value.map((f) =>
+      f.id === updatedField.id ? updatedField : f
+    ),
+  };
+};
+
+const removeSelectOption: CaseReducer<
+  FormBuilderState,
+  PayloadAction<{ id: Field["id"]; option: Option }>
+> = (state, action) => {
+  const field = state.value.find(
+    (x): x is SelectFormField =>
+      x.id === action.payload.id && x.type === "select"
+  );
+
+  if (!field) return state;
+
+  const updatedField: typeof field = {
+    ...field,
+    options: field.options.filter((o) => o.id !== action.payload.option.id),
   };
 
   return {
@@ -228,6 +262,7 @@ export const formBuilderSlice = createSlice({
     addValidationRule,
     removeValidationRule,
     addSelectOption,
+    removeSelectOption,
   },
 });
 

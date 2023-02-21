@@ -5,19 +5,14 @@ import styles from "./FormResult.module.css";
 
 export const FormResult = () => {
   const state = useAppSelector(formBuilderValue);
-  const onFormSubmit = (fn: any) => {
-    fn();
+  const onFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const elements = e.currentTarget.elements;
+    console.log(elements);
   };
 
   return (
-    <form
-      className={styles.form}
-      onSubmit={(e) =>
-        console.log(e)! ||
-        e.preventDefault()! ||
-        onFormSubmit((values: any) => console.log("submitted: ", values))
-      }
-    >
+    <form className={styles.form} onSubmit={onFormSubmit}>
       <h3>Result</h3>
       {state.map((field) =>
         match(field)
